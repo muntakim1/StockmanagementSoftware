@@ -5,19 +5,47 @@
  */
 package stockmanagement;
 
+import java.awt.event.KeyEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import net.proteanit.sql.DbUtils;
+
 /**
  *
  * @author munta
  */
-public class Transactions extends javax.swing.JFrame {
-
+public final class Transactions extends javax.swing.JFrame {
+    Connection conn=null;
+    PreparedStatement pst = null;
+    ResultSet rs = null;
     /**
      * Creates new form PurchasePage
      */
     public Transactions() {
         initComponents();
+        updateTable();
     }
+    void updateTable(){
+            String sql = "SELECT * FROM Transactions";
+            try {
+                conn=ConnectionManager.Connect();
+                pst = conn.prepareStatement(sql);
+                rs = pst.executeQuery();
+                System.out.print(rs);
+                AlltransactionsTable.setModel(DbUtils.resultSetToTableModel(rs));
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
+
+        }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -29,23 +57,23 @@ public class Transactions extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        AlltransactionsTable = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        Product_id = new javax.swing.JTextField();
+        Quantity = new javax.swing.JTextField();
+        AddData = new javax.swing.JButton();
+        UpdateData = new javax.swing.JButton();
+        DeleteItem = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        date = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        CRT = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
+        weight = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
+        Type = new javax.swing.JComboBox<>();
         jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -53,7 +81,7 @@ public class Transactions extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(0, 0, 102));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        AlltransactionsTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null},
@@ -79,7 +107,17 @@ public class Transactions extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane1.setViewportView(jTable1);
+        AlltransactionsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AlltransactionsTableMouseClicked(evt);
+            }
+        });
+        AlltransactionsTable.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                AlltransactionsTableKeyPressed(evt);
+            }
+        });
+        jScrollPane1.setViewportView(AlltransactionsTable);
 
         jPanel2.setBackground(new java.awt.Color(51, 0, 204));
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -92,31 +130,70 @@ public class Transactions extends javax.swing.JFrame {
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Quantity");
 
-        jButton1.setText("Add");
+        Product_id.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                Product_idKeyPressed(evt);
+            }
+        });
 
-        jButton2.setText("Update");
+        Quantity.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                QuantityKeyPressed(evt);
+            }
+        });
 
-        jButton3.setText("Delete");
+        AddData.setText("Add");
+        AddData.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AddDataActionPerformed(evt);
+            }
+        });
+
+        UpdateData.setText("Update");
+        UpdateData.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                UpdateDataActionPerformed(evt);
+            }
+        });
+
+        DeleteItem.setText("Delete");
+        DeleteItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                DeleteItemActionPerformed(evt);
+            }
+        });
 
         jLabel3.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Date");
 
+        date.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                dateKeyPressed(evt);
+            }
+        });
+
         jLabel4.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("CRT");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22c", "18c", "21c" }));
+        CRT.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22c", "18c", "21c" }));
 
         jLabel5.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Weight");
 
+        weight.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                weightKeyPressed(evt);
+            }
+        });
+
         jLabel6.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Type");
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Purchase", "Sales", "Order", "Artisan" }));
+        Type.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Purchase", "Sales", "Order", "Artisan" }));
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -129,29 +206,29 @@ public class Transactions extends javax.swing.JFrame {
                     .addComponent(jLabel2))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-                    .addComponent(jTextField1))
+                    .addComponent(Quantity, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                    .addComponent(Product_id))
                 .addGap(36, 36, 36)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField3)
-                    .addComponent(jComboBox1, 0, 98, Short.MAX_VALUE))
+                    .addComponent(date)
+                    .addComponent(CRT, 0, 98, Short.MAX_VALUE))
                 .addGap(39, 39, 39)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel5)
                     .addComponent(jLabel6))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField4)
-                    .addComponent(jComboBox2, 0, 119, Short.MAX_VALUE))
+                    .addComponent(weight)
+                    .addComponent(Type, 0, 119, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(DeleteItem, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(AddData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(UpdateData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -160,27 +237,27 @@ public class Transactions extends javax.swing.JFrame {
                 .addGap(17, 17, 17)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(Product_id, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(AddData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel3)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(date, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(weight, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+                .addComponent(UpdateData, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(9, 9, 9)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Quantity, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(CRT, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel6)
-                            .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(Type, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(18, 18, 18)
-                        .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)))
+                        .addComponent(DeleteItem, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)))
                 .addGap(43, 43, 43))
         );
 
@@ -224,7 +301,123 @@ public class Transactions extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void AddDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddDataActionPerformed
+       try {
+            String sql = "INSERT INTO Transactions VALUES(?,?,?,?,?,?)";
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            pst.setInt(1,Integer.parseInt(Product_id.getText()));
+            pst.setString(2, Type.getItemAt(Type.getSelectedIndex()));
+            pst.setDouble(3,Double.parseDouble(Quantity.getText()) );
+            pst.setDouble(4,Double.parseDouble(weight.getText()) );
+            pst.setString(5,date.getText() );
+            pst.setInt(6, Integer.parseInt(CRT.getItemAt(CRT.getSelectedIndex())));
+            pst.executeUpdate();
+          JOptionPane.showMessageDialog(null, "Inserted Successfully!");  
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Please Enter Valid Product ID");
+        }
+        updateTable();
+    }//GEN-LAST:event_AddDataActionPerformed
+
+    private void UpdateDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateDataActionPerformed
+        try {
+            String sql = "UPDATE Transactions SET Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE Product_ID=?";
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            pst.setString(6, Product_id.getText());
+            pst.setString(1, Type.getItemAt(Type.getSelectedIndex()));
+            pst.setDouble(2,Double.parseDouble(Quantity.getText()) );
+            pst.setDouble(3,Double.parseDouble(weight.getText()) );
+            pst.setString(4,date.getText() );
+            pst.setInt(5, Integer.parseInt(CRT.getItemAt(CRT.getSelectedIndex())));
+            pst.executeUpdate();
+            JOptionPane.showMessageDialog(null, "Updated Successfully!");
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        updateTable();// TODO add your handling code here:
+    }//GEN-LAST:event_UpdateDataActionPerformed
+
+    private void DeleteItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteItemActionPerformed
+     try {
+            String sql = "DELETE FROM Transactions WHERE Product_ID=?";
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            pst.setString(1, Product_id.getText());
+            pst.executeUpdate();
+            JOptionPane.showMessageDialog(null, "Deleted Successfully!");
+            updateTable();
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        // TODO add your handling code here:
+    }//GEN-LAST:event_DeleteItemActionPerformed
+
+    private void AlltransactionsTableKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_AlltransactionsTableKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_AlltransactionsTableKeyPressed
+
+    private void AlltransactionsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AlltransactionsTableMouseClicked
+        DefaultTableModel model = (DefaultTableModel) AlltransactionsTable.getModel();
+        int selectedRowIndex = AlltransactionsTable.getSelectedRow();
+        Product_id.setText(model.getValueAt(selectedRowIndex, 0).toString());
+        Type.setSelectedItem(model.getValueAt(selectedRowIndex, 1).toString());
+        Quantity.setText(model.getValueAt(selectedRowIndex, 2).toString());
+        weight.setText(model.getValueAt(selectedRowIndex, 3).toString());
+        date.setText(model.getValueAt(selectedRowIndex, 4).toString());
+        CRT.setSelectedItem(model.getValueAt(selectedRowIndex, 5).toString());
+    }//GEN-LAST:event_AlltransactionsTableMouseClicked
+
+    private void dateKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_dateKeyPressed
+        char c = evt.getKeyChar();
+              if (!((c >= '0') && (c <= '9') ||
+                 (c == KeyEvent.VK_BACK_SPACE) ||
+                 (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
+              {
+                JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
+                evt.consume();
+              }          // TODO add your handling code here:
+    }//GEN-LAST:event_dateKeyPressed
+
+    private void Product_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_Product_idKeyPressed
+    char c = evt.getKeyChar();
+      if (!((c >= '0') && (c <= '9') ||
+         (c == KeyEvent.VK_BACK_SPACE) ||
+         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
+      {
+        JOptionPane.showMessageDialog(null, "Please Enter Valid ID");
+        evt.consume();
+      }          // TODO add your handling code here:
+    }//GEN-LAST:event_Product_idKeyPressed
+
+    private void QuantityKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_QuantityKeyPressed
+        char c = evt.getKeyChar();
+              if (!((c >= '0') && (c <= '9') ||
+                 (c == KeyEvent.VK_BACK_SPACE) ||
+                 (c == KeyEvent.VK_DELETE)))        
+              {
+                JOptionPane.showMessageDialog(null, "Please Enter Valid Quatity");
+                evt.consume();
+              }           // TODO add your handling code here:
+    }//GEN-LAST:event_QuantityKeyPressed
+
+    private void weightKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_weightKeyPressed
+        char c = evt.getKeyChar();
+              if (!((c >= '0') && (c <= '9') ||
+                 (c == KeyEvent.VK_BACK_SPACE) ||
+                 (c == KeyEvent.VK_DELETE)))        
+              {
+                JOptionPane.showMessageDialog(null, "Please Enter Valid Weight");
+                evt.consume();
+              }        // TODO add your handling code here:
+    }//GEN-LAST:event_weightKeyPressed
 
     /**
      * @param args the command line arguments
@@ -263,11 +456,15 @@ public class Transactions extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JButton AddData;
+    private javax.swing.JTable AlltransactionsTable;
+    private javax.swing.JComboBox<String> CRT;
+    private javax.swing.JButton DeleteItem;
+    private javax.swing.JTextField Product_id;
+    private javax.swing.JTextField Quantity;
+    private javax.swing.JComboBox<String> Type;
+    private javax.swing.JButton UpdateData;
+    private javax.swing.JTextField date;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -278,10 +475,6 @@ public class Transactions extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
+    private javax.swing.JTextField weight;
     // End of variables declaration//GEN-END:variables
 }

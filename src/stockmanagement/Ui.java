@@ -39,13 +39,52 @@ public final class Ui extends javax.swing.JFrame {
      */
     Connection conn=null;
     PreparedStatement pst = null;
+    PreparedStatement pst1 = null;
+    PreparedStatement pst2 = null;
+    PreparedStatement pst3 = null;
+    PreparedStatement pst4 = null;
     ResultSet rs = null;
+    ResultSet rs1 = null;
+    ResultSet rs2 = null;
+    ResultSet rs3 = null;
+    ResultSet rs4 = null;    
     DefaultTableModel model = new DefaultTableModel();
     public Ui() {
         
         initComponents();
         conn=ConnectionManager.Connect();
         updateTable();
+        StatusUpdater();
+        StockTableUpdate();
+    }
+    void StatusUpdater(){
+        String sql = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Purchase\";";
+        String sql2 = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Sales\";";
+        String sql3 = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Order\";";
+        String sql4 = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Artisan\";";
+        String sql5 = "SELECT SUM(Weight) as total FROM Transactions;";
+        try {
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            pst1 = conn.prepareStatement(sql2);
+            pst2 = conn.prepareStatement(sql3);
+            pst3 = conn.prepareStatement(sql4);
+            pst4 = conn.prepareStatement(sql5);
+            
+            rs = pst.executeQuery();
+            rs1=pst1.executeQuery();
+            rs2=pst2.executeQuery();
+            rs3=pst3.executeQuery();
+            rs4=pst4.executeQuery();
+            Purchase_count.setText(rs.getString("total"));
+            Sale_count.setText(rs1.getString("total"));
+            Order_count.setText(rs2.getString("total"));
+            Artisan_count.setText(rs3.getString("total"));
+            Total_weight_count.setText(rs4.getString("total"));
+            conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     void updateTable(){
         String sql = "SELECT * FROM Transactions";
@@ -59,9 +98,21 @@ public final class Ui extends javax.swing.JFrame {
             conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }  
+    }
+    void StockTableUpdate(){
+        String sql = "SELECT Product_ID,Quantity as Available_Stock FROM Transactions;";
+        try {
+            conn=ConnectionManager.Connect();
+
+            pst = conn.prepareStatement(sql);
+            rs = pst.executeQuery();
+            System.out.print(rs);
+            AllStockAvailableTable.setModel(DbUtils.resultSetToTableModel(rs));
+            conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
     }
    
     /**
@@ -79,8 +130,13 @@ public final class Ui extends javax.swing.JFrame {
         Transactions = new javax.swing.JButton();
         About = new javax.swing.JButton();
         Calendar = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
+        Purchase_Weights = new javax.swing.JPanel();
         Purchase_count = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
@@ -92,15 +148,15 @@ public final class Ui extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         Artisan_count = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
-        jPanel7 = new javax.swing.JPanel();
+        GetTotalWeight = new javax.swing.JPanel();
         Total_weight_count = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
         jPanel9 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
-        jTextField6 = new javax.swing.JTextField();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        AllStockAvailableTable = new javax.swing.JTable();
+        SearchID = new javax.swing.JTextField();
+        RefreshBtn = new javax.swing.JButton();
+        ExportToExcelStock = new javax.swing.JButton();
         jPanel10 = new javax.swing.JPanel();
         jPanel11 = new javax.swing.JPanel();
         jLabel16 = new javax.swing.JLabel();
@@ -138,6 +194,7 @@ public final class Ui extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(22, 36, 71));
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setPreferredSize(new java.awt.Dimension(1184, 984));
         setResizable(false);
 
@@ -175,28 +232,73 @@ public final class Ui extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setFont(new java.awt.Font("Times New Roman", 0, 14)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel2.setText("Weight : ");
+
+        jLabel5.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(204, 255, 255));
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel5.setText("Metrics");
+
+        jLabel6.setFont(new java.awt.Font("Times New Roman", 0, 14)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(255, 255, 102));
+        jLabel6.setText("GRAM");
+
+        jLabel7.setFont(new java.awt.Font("Times New Roman", 0, 14)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(255, 255, 102));
+        jLabel7.setText("18c, 22c, 24c");
+
+        jLabel22.setFont(new java.awt.Font("Times New Roman", 0, 14)); // NOI18N
+        jLabel22.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel22.setText("Carat  : ");
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                    .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                    .addComponent(Calendar, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                            .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
+                            .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
+                            .addComponent(Calendar, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(jLabel22)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(92, 92, 92)
-                .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
+                .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(Calendar, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
+                .addComponent(Calendar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE)
-                .addGap(714, 714, 714))
+                .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(206, 206, 206)
+                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(440, 440, 440))
         );
 
         jLabel1.setFont(new java.awt.Font("Lucida Bright", 0, 24)); // NOI18N
@@ -204,30 +306,30 @@ public final class Ui extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Stock Management System");
 
-        jPanel2.setBackground(new java.awt.Color(204, 204, 255));
-        jPanel2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Purchase_Weights.setBackground(new java.awt.Color(204, 204, 255));
+        Purchase_Weights.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        Purchase_count.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
+        Purchase_count.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
         Purchase_count.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Purchase_count.setText("0");
 
         jLabel4.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         jLabel4.setText("Purchase");
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout Purchase_WeightsLayout = new javax.swing.GroupLayout(Purchase_Weights);
+        Purchase_Weights.setLayout(Purchase_WeightsLayout);
+        Purchase_WeightsLayout.setHorizontalGroup(
+            Purchase_WeightsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Purchase_WeightsLayout.createSequentialGroup()
                 .addGap(54, 54, 54)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(Purchase_WeightsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(Purchase_count, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        Purchase_WeightsLayout.setVerticalGroup(
+            Purchase_WeightsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(Purchase_WeightsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(Purchase_count)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -238,7 +340,7 @@ public final class Ui extends javax.swing.JFrame {
         jPanel4.setBackground(new java.awt.Color(255, 204, 255));
         jPanel4.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        Sale_count.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
+        Sale_count.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
         Sale_count.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Sale_count.setText("0");
 
@@ -269,7 +371,7 @@ public final class Ui extends javax.swing.JFrame {
         jPanel5.setBackground(new java.awt.Color(255, 204, 204));
         jPanel5.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        Order_count.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
+        Order_count.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
         Order_count.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Order_count.setText("0");
 
@@ -300,7 +402,7 @@ public final class Ui extends javax.swing.JFrame {
         jPanel6.setBackground(new java.awt.Color(204, 255, 204));
         jPanel6.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        Artisan_count.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
+        Artisan_count.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
         Artisan_count.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Artisan_count.setText("0");
 
@@ -328,30 +430,30 @@ public final class Ui extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel7.setBackground(new java.awt.Color(204, 51, 255));
-        jPanel7.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        GetTotalWeight.setBackground(new java.awt.Color(204, 51, 255));
+        GetTotalWeight.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        Total_weight_count.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
+        Total_weight_count.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
         Total_weight_count.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Total_weight_count.setText("0");
 
         jLabel15.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         jLabel15.setText("Total Weight");
 
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
+        javax.swing.GroupLayout GetTotalWeightLayout = new javax.swing.GroupLayout(GetTotalWeight);
+        GetTotalWeight.setLayout(GetTotalWeightLayout);
+        GetTotalWeightLayout.setHorizontalGroup(
+            GetTotalWeightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(GetTotalWeightLayout.createSequentialGroup()
                 .addGap(46, 46, 46)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(GetTotalWeightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(Total_weight_count, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
+        GetTotalWeightLayout.setVerticalGroup(
+            GetTotalWeightLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(GetTotalWeightLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(Total_weight_count)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -361,7 +463,7 @@ public final class Ui extends javax.swing.JFrame {
 
         jPanel9.setBackground(new java.awt.Color(228, 63, 90));
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        AllStockAvailableTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
                 {null, null},
@@ -380,13 +482,28 @@ public final class Ui extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(jTable2);
+        jScrollPane2.setViewportView(AllStockAvailableTable);
 
-        jTextField6.setText("Search");
+        SearchID.setText("Search");
+        SearchID.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                SearchIDKeyPressed(evt);
+            }
+        });
 
-        jButton5.setText("Refresh");
+        RefreshBtn.setText("Refresh");
+        RefreshBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RefreshBtnActionPerformed(evt);
+            }
+        });
 
-        jButton6.setText("Extract");
+        ExportToExcelStock.setText("Extract");
+        ExportToExcelStock.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ExportToExcelStockActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
@@ -399,11 +516,11 @@ public final class Ui extends javax.swing.JFrame {
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                     .addGroup(jPanel9Layout.createSequentialGroup()
                         .addGap(23, 23, 23)
-                        .addComponent(jTextField6, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+                        .addComponent(SearchID, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)
-                            .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(RefreshBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)
+                            .addComponent(ExportToExcelStock, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
@@ -412,12 +529,12 @@ public final class Ui extends javax.swing.JFrame {
                 .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel9Layout.createSequentialGroup()
                         .addGap(57, 57, 57)
-                        .addComponent(jTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(SearchID, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel9Layout.createSequentialGroup()
                         .addGap(28, 28, 28)
-                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(RefreshBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(ExportToExcelStock, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(38, 38, 38)
                 .addComponent(jScrollPane2)
                 .addContainerGap())
@@ -466,7 +583,7 @@ public final class Ui extends javax.swing.JFrame {
 
         jLabel20.setText("CRT");
 
-        input_crt.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22", "20", "18" }));
+        input_crt.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22", "21", "18" }));
 
         jLabel21.setText("Weight");
 
@@ -653,6 +770,11 @@ public final class Ui extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        AllTransactionsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AllTransactionsTableMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(AllTransactionsTable);
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
@@ -775,7 +897,7 @@ public final class Ui extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(Purchase_Weights, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -784,7 +906,7 @@ public final class Ui extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(GetTotalWeight, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(26, 26, 26))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -808,13 +930,13 @@ public final class Ui extends javax.swing.JFrame {
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(Purchase_Weights, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(GetTotalWeight, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 20, Short.MAX_VALUE)
+                .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -841,6 +963,7 @@ public final class Ui extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void TransactionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TransactionsActionPerformed
@@ -880,12 +1003,34 @@ public final class Ui extends javax.swing.JFrame {
             
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Please Enter Valid Product ID");
         }
-        updateTable();
+        updateTable(); 
+        StatusUpdater();
+        StockTableUpdate();
     }//GEN-LAST:event_AddActionPerformed
 
     private void UpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateActionPerformed
-        // TODO add your handling code here:
+        try {
+            String sql = "UPDATE Transactions SET Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE Product_ID=?";
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            pst.setString(6, input_product_id.getText());
+            pst.setString(1, input_type.getItemAt(input_type.getSelectedIndex()));
+            pst.setDouble(2,Double.parseDouble(input_quantity.getText()) );
+            pst.setDouble(3,Double.parseDouble(input_weight.getText()) );
+            pst.setString(4,input_date.getText() );
+            pst.setInt(5, Integer.parseInt(input_crt.getItemAt(input_crt.getSelectedIndex())));
+            pst.executeUpdate();
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        updateTable();
+        StatusUpdater();
+        StockTableUpdate();
+// TODO add your handling code here:
     }//GEN-LAST:event_UpdateActionPerformed
 
     private void input_product_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_product_idKeyPressed
@@ -934,6 +1079,11 @@ public final class Ui extends javax.swing.JFrame {
 
     private void RefreshDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefreshDataActionPerformed
        try {
+           if(InsertStartDate.getText().isEmpty() && InsertStopDate.getText().isEmpty() ){
+               updateTable();
+               JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
+           }
+           else{
             String sql = "SELECT * FROM Transactions WHERE Date BETWEEN ? and ?";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
@@ -942,6 +1092,8 @@ public final class Ui extends javax.swing.JFrame {
             
             rs = pst.executeQuery();
             AllTransactionsTable.setModel(DbUtils.resultSetToTableModel(rs));
+           }
+            
             
             
         } catch (SQLException ex) {
@@ -1111,8 +1263,8 @@ public final class Ui extends javax.swing.JFrame {
                         cell.setCellValue(AllTransactionsTable.getColumnName(c).toString());
                        System.out.println("\n"+AllTransactionsTable.getColumnName(c).toString());
                        }
-                for (int i = 1; i < AllTransactionsTable.getRowCount(); i++) {
-                    XSSFRow excelRow = excelSheet.createRow(i);
+                for (int i = 0; i < AllTransactionsTable.getRowCount(); i++) {
+                    XSSFRow excelRow = excelSheet.createRow(i+1);
                     for (int j = 0; j < AllTransactionsTable.getColumnCount(); j++) {
                         XSSFCell excelCell = excelRow.createCell(j);
  
@@ -1148,6 +1300,120 @@ public final class Ui extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_ExportToExcelActionPerformed
+
+    private void AllTransactionsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AllTransactionsTableMouseClicked
+        DefaultTableModel model = (DefaultTableModel) AllTransactionsTable.getModel();
+        int selectedRowIndex = AllTransactionsTable.getSelectedRow();
+        input_product_id.setText(model.getValueAt(selectedRowIndex, 0).toString());
+        input_type.setSelectedItem(model.getValueAt(selectedRowIndex, 1).toString());
+        input_quantity.setText(model.getValueAt(selectedRowIndex, 2).toString());
+        input_weight.setText(model.getValueAt(selectedRowIndex, 3).toString());
+        input_date.setText(model.getValueAt(selectedRowIndex, 4).toString());
+        input_crt.setSelectedItem(model.getValueAt(selectedRowIndex, 5).toString());
+        
+// TODO add your handling code here:
+    }//GEN-LAST:event_AllTransactionsTableMouseClicked
+
+    private void ExportToExcelStockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExportToExcelStockActionPerformed
+        FileOutputStream excelFos = null;
+        XSSFWorkbook excelJTableExport = null;
+        BufferedOutputStream excelBos = null;
+        try {
+ 
+            //Choosing Saving Location
+            //Set default location to C:\Users\Authentic\Desktop or your preferred location
+            JFileChooser excelFileChooser = new JFileChooser(System.getProperty("user.home"));
+            //Dialog box title
+            excelFileChooser.setDialogTitle("Save As ..");
+            //Filter only xls, xlsx, xlsm files
+            FileNameExtensionFilter fnef = new FileNameExtensionFilter("Files", "xls", "xlsx", "xlsm");
+            //Setting extension for selected file names
+            excelFileChooser.setFileFilter(fnef);
+            int chooser = excelFileChooser.showSaveDialog(null);
+            //Check if save button has been clicked
+            if (chooser == JFileChooser.APPROVE_OPTION) {
+                //If button is clicked execute this code
+                excelJTableExport = new XSSFWorkbook();
+                XSSFSheet excelSheet = excelJTableExport.createSheet("Table Data Export");
+                //Loop through the jtable columns and rows to get its values
+                XSSFRow row = excelSheet.createRow(0);
+                 for (int c = 0; c < AllStockAvailableTable.getColumnCount(); c++) {
+                       XSSFCell cell =  row.createCell(c);
+                        cell.setCellValue(AllStockAvailableTable.getColumnName(c).toString());
+                       
+                       }
+                for (int i = 0; i < AllStockAvailableTable.getRowCount(); i++) {
+                    XSSFRow excelRow = excelSheet.createRow(i+1);
+                    for (int j = 0; j < AllStockAvailableTable.getColumnCount(); j++) {
+                        XSSFCell excelCell = excelRow.createCell(j);
+ 
+                        excelCell.setCellValue(AllStockAvailableTable.getValueAt(i, j).toString());
+                      System.out.println("\n"+AllStockAvailableTable.getValueAt(i, j).toString());
+                    }
+                }
+                excelFos = new FileOutputStream(excelFileChooser.getSelectedFile() + ".xlsx");
+                excelBos = new BufferedOutputStream(excelFos);
+                excelJTableExport.write(excelBos);
+                excelBos.close();
+                JOptionPane.showMessageDialog(null, "Exported Successfully");
+            }
+ 
+        } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, ex);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, ex);
+        } finally {
+            try {
+                if (excelFos != null) {
+                    excelFos.close();
+                }
+                if (excelBos != null) {
+                    excelBos.close();
+                }
+                if (excelJTableExport != null) {
+                    excelJTableExport.close();
+                }
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, ex);
+                System.out.println(ex);
+            }
+        }        // TODO add your handling code here:
+    }//GEN-LAST:event_ExportToExcelStockActionPerformed
+
+    private void RefreshBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefreshBtnActionPerformed
+       String sql = "SELECT Product_ID,Quantity as Available_Stock FROM Transactions Where Product_ID=?;";
+        try {
+            if(!SearchID.getText().isEmpty()){
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            pst.setInt(1,Integer.parseInt(SearchID.getText()));
+            rs = pst.executeQuery();
+            System.out.print(rs);
+            AllStockAvailableTable.setModel(DbUtils.resultSetToTableModel(rs));
+            conn.close(); 
+            }
+            else{
+                JOptionPane.showMessageDialog(null, "Please Enter a valid ID to search");
+                StockTableUpdate();
+            }
+            
+        } catch (SQLException ex) {
+             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+             
+             
+        } // TODO add your handling code here:
+    }//GEN-LAST:event_RefreshBtnActionPerformed
+
+    private void SearchIDKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_SearchIDKeyPressed
+    char c = evt.getKeyChar();
+      if (!((c >= '0') && (c <= '9') ||
+         (c == KeyEvent.VK_BACK_SPACE) ||
+         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
+      {
+        JOptionPane.showMessageDialog(null, "Please Enter Valid ID");
+        evt.consume();
+      }           // TODO add your handling code here:
+    }//GEN-LAST:event_SearchIDKeyPressed
 
     /**
      * @param args the command line arguments
@@ -1187,17 +1453,23 @@ public final class Ui extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton About;
     private javax.swing.JButton Add;
+    private javax.swing.JTable AllStockAvailableTable;
     private javax.swing.JTable AllTransactionsTable;
     private javax.swing.JLabel Artisan_count;
     private javax.swing.JButton Calendar;
     private javax.swing.JButton ExportToExcel;
+    private javax.swing.JButton ExportToExcelStock;
     private javax.swing.ButtonGroup FilterButtons;
+    private javax.swing.JPanel GetTotalWeight;
     private javax.swing.JTextField InsertStartDate;
     private javax.swing.JTextField InsertStopDate;
     private javax.swing.JLabel Order_count;
+    private javax.swing.JPanel Purchase_Weights;
     private javax.swing.JLabel Purchase_count;
+    private javax.swing.JButton RefreshBtn;
     private javax.swing.JButton RefreshData;
     private javax.swing.JLabel Sale_count;
+    private javax.swing.JTextField SearchID;
     private javax.swing.JLabel Total_weight_count;
     private javax.swing.JButton Transactions;
     private javax.swing.JButton Update;
@@ -1212,8 +1484,6 @@ public final class Ui extends javax.swing.JFrame {
     private javax.swing.JTextField input_quantity;
     private javax.swing.JComboBox<String> input_type;
     private javax.swing.JTextField input_weight;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1225,27 +1495,28 @@ public final class Ui extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTable jTable2;
-    private javax.swing.JTextField jTextField6;
     // End of variables declaration//GEN-END:variables
 }

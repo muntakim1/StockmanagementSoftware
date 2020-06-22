@@ -11,7 +11,6 @@ package stockmanagement;
  */
 
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -84,7 +83,7 @@ public class CalendarProgram {
         //Make frame visible
         frmMain.setResizable(false);
         frmMain.setVisible(true);
-        
+        frmMain.setLocationRelativeTo(null);
         //Get real month/year
         GregorianCalendar cal = new GregorianCalendar(); //Create calendar
         realDay = cal.get(GregorianCalendar.DAY_OF_MONTH); //Get day
