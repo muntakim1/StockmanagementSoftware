@@ -10,6 +10,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -32,7 +35,7 @@ public final class Transactions extends javax.swing.JFrame {
         updateTable();
     }
     void updateTable(){
-            String sql = "SELECT * FROM Transactions";
+            String sql = "SELECT * FROM ProductMaster";
             try {
                 conn=ConnectionManager.Connect();
                 pst = conn.prepareStatement(sql);
@@ -61,22 +64,23 @@ public final class Transactions extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        Product_id = new javax.swing.JTextField();
-        Quantity = new javax.swing.JTextField();
+        input_product_id = new javax.swing.JTextField();
+        input_quantity = new javax.swing.JTextField();
         AddData = new javax.swing.JButton();
         UpdateData = new javax.swing.JButton();
         DeleteItem = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        date = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        CRT = new javax.swing.JComboBox<>();
+        input_crt = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
-        weight = new javax.swing.JTextField();
+        input_weight = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        Type = new javax.swing.JComboBox<>();
+        input_type = new javax.swing.JComboBox<>();
+        input_date = new com.toedter.calendar.JDateChooser();
         jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setIconImages(null);
         setPreferredSize(new java.awt.Dimension(1024, 500));
 
         jPanel1.setBackground(new java.awt.Color(0, 0, 102));
@@ -130,15 +134,9 @@ public final class Transactions extends javax.swing.JFrame {
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Quantity");
 
-        Product_id.addKeyListener(new java.awt.event.KeyAdapter() {
+        input_quantity.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                Product_idKeyPressed(evt);
-            }
-        });
-
-        Quantity.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                QuantityKeyPressed(evt);
+                input_quantityKeyPressed(evt);
             }
         });
 
@@ -167,25 +165,19 @@ public final class Transactions extends javax.swing.JFrame {
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Date");
 
-        date.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                dateKeyPressed(evt);
-            }
-        });
-
         jLabel4.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("CRT");
 
-        CRT.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22c", "18c", "21c" }));
+        input_crt.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22c", "18c", "21c" }));
 
         jLabel5.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Weight");
 
-        weight.addKeyListener(new java.awt.event.KeyAdapter() {
+        input_weight.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                weightKeyPressed(evt);
+                input_weightKeyPressed(evt);
             }
         });
 
@@ -193,7 +185,9 @@ public final class Transactions extends javax.swing.JFrame {
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Type");
 
-        Type.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Purchase", "Sales", "Order", "Artisan" }));
+        input_type.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Purchase", "Sales", "Order", "Artisan" }));
+
+        input_date.setDateFormatString("yyyy-MM-dd");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -206,25 +200,25 @@ public final class Transactions extends javax.swing.JFrame {
                     .addComponent(jLabel2))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(Quantity, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
-                    .addComponent(Product_id))
+                    .addComponent(input_quantity, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                    .addComponent(input_product_id))
                 .addGap(36, 36, 36)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(date)
-                    .addComponent(CRT, 0, 98, Short.MAX_VALUE))
-                .addGap(39, 39, 39)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(input_crt, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(input_date, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel5)
                     .addComponent(jLabel6))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(weight)
-                    .addComponent(Type, 0, 119, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(input_weight)
+                    .addComponent(input_type, 0, 119, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 371, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(DeleteItem, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(AddData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -236,13 +230,13 @@ public final class Transactions extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Product_id, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
+                    .addComponent(input_product_id, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
                     .addComponent(AddData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel3)
-                    .addComponent(date, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5)
-                    .addComponent(weight, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(input_weight, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
+                    .addComponent(input_date, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addComponent(UpdateData, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -250,11 +244,11 @@ public final class Transactions extends javax.swing.JFrame {
                         .addGap(9, 9, 9)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
-                            .addComponent(Quantity, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(input_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4)
-                            .addComponent(CRT, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(input_crt, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel6)
-                            .addComponent(Type, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(input_type, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(18, 18, 18)
                         .addComponent(DeleteItem, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)))
@@ -275,7 +269,7 @@ public final class Transactions extends javax.swing.JFrame {
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 996, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 37, Short.MAX_VALUE))
+                .addGap(0, 28, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -306,36 +300,42 @@ public final class Transactions extends javax.swing.JFrame {
 
     private void AddDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddDataActionPerformed
        try {
-            String sql = "INSERT INTO Transactions VALUES(?,?,?,?,?,?)";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date1 = (Date) input_date.getDate();
+            String input_date =sdf.format(date1) ;
+            String sql = "INSERT INTO ProductMaster VALUES(?,?,?,?,?,?)";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setInt(1,Integer.parseInt(Product_id.getText()));
-            pst.setString(2, Type.getItemAt(Type.getSelectedIndex()));
-            pst.setDouble(3,Double.parseDouble(Quantity.getText()) );
-            pst.setDouble(4,Double.parseDouble(weight.getText()) );
-            pst.setString(5,date.getText() );
-            pst.setInt(6, Integer.parseInt(CRT.getItemAt(CRT.getSelectedIndex())));
+            pst.setString(1,input_product_id.getText());
+            pst.setString(2, input_type.getItemAt(input_type.getSelectedIndex()));
+            pst.setDouble(3,Double.parseDouble(input_quantity.getText()) );
+            pst.setDouble(4,Double.parseDouble(input_weight.getText()) );
+            pst.setString(5,input_date);
+            pst.setString(6, input_crt.getItemAt(input_crt.getSelectedIndex()));
             pst.executeUpdate();
-          JOptionPane.showMessageDialog(null, "Inserted Successfully!");  
+            
             
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
             JOptionPane.showMessageDialog(null, "Please Enter Valid Product ID");
         }
-        updateTable();
+        updateTable(); 
     }//GEN-LAST:event_AddDataActionPerformed
 
     private void UpdateDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateDataActionPerformed
         try {
-            String sql = "UPDATE Transactions SET Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE Product_ID=?";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = (Date) input_date.getDate();
+            String date1 =sdf.format(date) ;
+            String sql = "UPDATE ProductMaster SET Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE Product_ID=?";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setString(6, Product_id.getText());
-            pst.setString(1, Type.getItemAt(Type.getSelectedIndex()));
-            pst.setDouble(2,Double.parseDouble(Quantity.getText()) );
-            pst.setDouble(3,Double.parseDouble(weight.getText()) );
-            pst.setString(4,date.getText() );
-            pst.setInt(5, Integer.parseInt(CRT.getItemAt(CRT.getSelectedIndex())));
+            pst.setString(6, input_product_id.getText());
+            pst.setString(1, input_type.getItemAt(input_type.getSelectedIndex()));
+            pst.setDouble(2,Double.parseDouble(input_quantity.getText()) );
+            pst.setDouble(3,Double.parseDouble(input_weight.getText()) );
+            pst.setString(4,date1 );
+            pst.setString(5, input_crt.getItemAt(input_crt.getSelectedIndex()));
             pst.executeUpdate();
             JOptionPane.showMessageDialog(null, "Updated Successfully!");
             
@@ -347,10 +347,10 @@ public final class Transactions extends javax.swing.JFrame {
 
     private void DeleteItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteItemActionPerformed
      try {
-            String sql = "DELETE FROM Transactions WHERE Product_ID=?";
+            String sql = "DELETE FROM ProductMaster WHERE Product_ID=?";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setString(1, Product_id.getText());
+            pst.setString(1, input_product_id.getText());
             pst.executeUpdate();
             JOptionPane.showMessageDialog(null, "Deleted Successfully!");
             updateTable();
@@ -367,37 +367,23 @@ public final class Transactions extends javax.swing.JFrame {
     private void AlltransactionsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AlltransactionsTableMouseClicked
         DefaultTableModel model = (DefaultTableModel) AlltransactionsTable.getModel();
         int selectedRowIndex = AlltransactionsTable.getSelectedRow();
-        Product_id.setText(model.getValueAt(selectedRowIndex, 0).toString());
-        Type.setSelectedItem(model.getValueAt(selectedRowIndex, 1).toString());
-        Quantity.setText(model.getValueAt(selectedRowIndex, 2).toString());
-        weight.setText(model.getValueAt(selectedRowIndex, 3).toString());
-        date.setText(model.getValueAt(selectedRowIndex, 4).toString());
-        CRT.setSelectedItem(model.getValueAt(selectedRowIndex, 5).toString());
+        input_product_id.setText(model.getValueAt(selectedRowIndex, 0).toString());
+        input_type.setSelectedItem(model.getValueAt(selectedRowIndex, 1).toString());
+        input_quantity.setText(model.getValueAt(selectedRowIndex, 2).toString());
+        input_weight.setText(model.getValueAt(selectedRowIndex, 3).toString());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date da = null;
+        try {
+            da = sdf. parse(model.getValueAt(selectedRowIndex, 4).toString());
+        } catch (ParseException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        input_date.setDate(da);
+      
+        input_crt.setSelectedItem(model.getValueAt(selectedRowIndex, 5).toString());
     }//GEN-LAST:event_AlltransactionsTableMouseClicked
 
-    private void dateKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_dateKeyPressed
-        char c = evt.getKeyChar();
-              if (!((c >= '0') && (c <= '9') ||
-                 (c == KeyEvent.VK_BACK_SPACE) ||
-                 (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
-              {
-                JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
-                evt.consume();
-              }          // TODO add your handling code here:
-    }//GEN-LAST:event_dateKeyPressed
-
-    private void Product_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_Product_idKeyPressed
-    char c = evt.getKeyChar();
-      if (!((c >= '0') && (c <= '9') ||
-         (c == KeyEvent.VK_BACK_SPACE) ||
-         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
-      {
-        JOptionPane.showMessageDialog(null, "Please Enter Valid ID");
-        evt.consume();
-      }          // TODO add your handling code here:
-    }//GEN-LAST:event_Product_idKeyPressed
-
-    private void QuantityKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_QuantityKeyPressed
+    private void input_quantityKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_quantityKeyPressed
         char c = evt.getKeyChar();
               if (!((c >= '0') && (c <= '9') ||
                  (c == KeyEvent.VK_BACK_SPACE) ||
@@ -406,9 +392,9 @@ public final class Transactions extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Please Enter Valid Quatity");
                 evt.consume();
               }           // TODO add your handling code here:
-    }//GEN-LAST:event_QuantityKeyPressed
+    }//GEN-LAST:event_input_quantityKeyPressed
 
-    private void weightKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_weightKeyPressed
+    private void input_weightKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_weightKeyPressed
         char c = evt.getKeyChar();
               if (!((c >= '0') && (c <= '9') ||
                  (c == KeyEvent.VK_BACK_SPACE) ||
@@ -417,7 +403,7 @@ public final class Transactions extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Please Enter Valid Weight");
                 evt.consume();
               }        // TODO add your handling code here:
-    }//GEN-LAST:event_weightKeyPressed
+    }//GEN-LAST:event_input_weightKeyPressed
 
     /**
      * @param args the command line arguments
@@ -458,13 +444,14 @@ public final class Transactions extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton AddData;
     private javax.swing.JTable AlltransactionsTable;
-    private javax.swing.JComboBox<String> CRT;
     private javax.swing.JButton DeleteItem;
-    private javax.swing.JTextField Product_id;
-    private javax.swing.JTextField Quantity;
-    private javax.swing.JComboBox<String> Type;
     private javax.swing.JButton UpdateData;
-    private javax.swing.JTextField date;
+    private javax.swing.JComboBox<String> input_crt;
+    private com.toedter.calendar.JDateChooser input_date;
+    private javax.swing.JTextField input_product_id;
+    private javax.swing.JTextField input_quantity;
+    private javax.swing.JComboBox<String> input_type;
+    private javax.swing.JTextField input_weight;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -475,6 +462,5 @@ public final class Transactions extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField weight;
     // End of variables declaration//GEN-END:variables
 }

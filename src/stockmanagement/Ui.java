@@ -12,12 +12,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import net.proteanit.sql.DbUtils;
 import java.sql.Connection;
+import java.util.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static javax.management.Query.lt;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
@@ -56,6 +58,19 @@ public final class Ui extends javax.swing.JFrame {
         updateTable();
         StatusUpdater();
         StockTableUpdate();
+        String sql = "SELECT Product_ID FROM ProductMaster";
+        try {
+            conn=ConnectionManager.Connect();
+            pst = conn.prepareStatement(sql);
+            rs = pst.executeQuery();
+            while(rs.next()){
+            input_product_id.addItem(rs.getString(1));
+        }
+            
+            conn.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }  
     }
     void StatusUpdater(){
         String sql = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Purchase\";";
@@ -100,8 +115,14 @@ public final class Ui extends javax.swing.JFrame {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }  
     }
-    void StockTableUpdate(){
-        String sql = "SELECT Product_ID,Quantity as Available_Stock FROM Transactions;";
+    void StockTableUpdate(String Values){
+        String sql ="SELECT Product_ID, \n" +
+        "CASE Type \n" +
+        "WHEN \"Sales\" \n" +
+        "THEN Available_stock-Quantity \n" +
+        "ELSE \n" +
+        "Available_stock\n" +
+        "END Available_stock FROM (SELECT Product_ID,Type,Quantity, sum(Quantity) as Available_stock FROM Transactions GROUP By Product_ID) GROUP By Product_ID;"; 
         try {
             conn=ConnectionManager.Connect();
 
@@ -129,7 +150,6 @@ public final class Ui extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         Transactions = new javax.swing.JButton();
         About = new javax.swing.JButton();
-        Calendar = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
@@ -157,13 +177,13 @@ public final class Ui extends javax.swing.JFrame {
         SearchID = new javax.swing.JTextField();
         RefreshBtn = new javax.swing.JButton();
         ExportToExcelStock = new javax.swing.JButton();
+        jLabel23 = new javax.swing.JLabel();
         jPanel10 = new javax.swing.JPanel();
         jPanel11 = new javax.swing.JPanel();
         jLabel16 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
         input_quantity = new javax.swing.JTextField();
         jLabel19 = new javax.swing.JLabel();
-        input_date = new javax.swing.JTextField();
         Add = new javax.swing.JButton();
         Update = new javax.swing.JButton();
         jLabel18 = new javax.swing.JLabel();
@@ -172,7 +192,8 @@ public final class Ui extends javax.swing.JFrame {
         input_crt = new javax.swing.JComboBox<>();
         jLabel21 = new javax.swing.JLabel();
         input_weight = new javax.swing.JTextField();
-        input_product_id = new javax.swing.JTextField();
+        input_date = new com.toedter.calendar.JDateChooser();
+        input_product_id = new javax.swing.JComboBox<>();
         jPanel12 = new javax.swing.JPanel();
         ViewAllTransactions = new javax.swing.JRadioButton();
         ViewAlllPurchases = new javax.swing.JRadioButton();
@@ -183,11 +204,11 @@ public final class Ui extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         AllTransactionsTable = new javax.swing.JTable();
         jPanel8 = new javax.swing.JPanel();
-        InsertStartDate = new javax.swing.JTextField();
-        InsertStopDate = new javax.swing.JTextField();
         RefreshData = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
+        InsertStopDate = new com.toedter.calendar.JDateChooser();
+        InsertStartDate = new com.toedter.calendar.JDateChooser();
         jLabel3 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
@@ -195,6 +216,7 @@ public final class Ui extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(22, 36, 71));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        setIconImages(null);
         setPreferredSize(new java.awt.Dimension(1184, 984));
         setResizable(false);
 
@@ -219,16 +241,6 @@ public final class Ui extends javax.swing.JFrame {
         About.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 AboutActionPerformed(evt);
-            }
-        });
-
-        Calendar.setBackground(new java.awt.Color(31, 64, 104));
-        Calendar.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
-        Calendar.setForeground(new java.awt.Color(255, 255, 255));
-        Calendar.setText("Calendar");
-        Calendar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                CalendarActionPerformed(evt);
             }
         });
 
@@ -258,37 +270,35 @@ public final class Ui extends javax.swing.JFrame {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                            .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                            .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                            .addComponent(Calendar, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(23, 23, 23)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addComponent(jLabel22)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                        .addGap(2, 2, 2)
+                        .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE))
                 .addContainerGap())
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(23, 23, 23)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel22)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(92, 92, 92)
+                .addGap(99, 99, 99)
                 .addComponent(Transactions, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(Calendar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(About, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(206, 206, 206)
+                .addGap(240, 240, 240)
                 .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
@@ -484,7 +494,6 @@ public final class Ui extends javax.swing.JFrame {
         });
         jScrollPane2.setViewportView(AllStockAvailableTable);
 
-        SearchID.setText("Search");
         SearchID.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 SearchIDKeyPressed(evt);
@@ -505,6 +514,10 @@ public final class Ui extends javax.swing.JFrame {
             }
         });
 
+        jLabel23.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel23.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel23.setText("Search Prodcut");
+
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
@@ -516,7 +529,11 @@ public final class Ui extends javax.swing.JFrame {
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                     .addGroup(jPanel9Layout.createSequentialGroup()
                         .addGap(23, 23, 23)
-                        .addComponent(SearchID, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+                        .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(SearchID, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+                            .addGroup(jPanel9Layout.createSequentialGroup()
+                                .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(RefreshBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)
@@ -526,17 +543,18 @@ public final class Ui extends javax.swing.JFrame {
         jPanel9Layout.setVerticalGroup(
             jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel9Layout.createSequentialGroup()
+                .addGap(28, 28, 28)
                 .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel9Layout.createSequentialGroup()
-                        .addGap(57, 57, 57)
+                        .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(SearchID, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel9Layout.createSequentialGroup()
-                        .addGap(28, 28, 28)
                         .addComponent(RefreshBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ExportToExcelStock, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(38, 38, 38)
-                .addComponent(jScrollPane2)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 493, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -556,12 +574,6 @@ public final class Ui extends javax.swing.JFrame {
         });
 
         jLabel19.setText("Date");
-
-        input_date.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                input_dateKeyPressed(evt);
-            }
-        });
 
         Add.setText("Add");
         Add.addActionListener(new java.awt.event.ActionListener() {
@@ -583,7 +595,7 @@ public final class Ui extends javax.swing.JFrame {
 
         jLabel20.setText("CRT");
 
-        input_crt.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22", "21", "18" }));
+        input_crt.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "22c", "21c", "18c" }));
 
         jLabel21.setText("Weight");
 
@@ -593,12 +605,7 @@ public final class Ui extends javax.swing.JFrame {
             }
         });
 
-        input_product_id.setToolTipText("ID");
-        input_product_id.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                input_product_idKeyPressed(evt);
-            }
-        });
+        input_date.setDateFormatString("yyyy-MM-dd");
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
@@ -612,7 +619,7 @@ public final class Ui extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(input_type, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(input_product_id))
+                    .addComponent(input_product_id, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jLabel17)
@@ -628,7 +635,7 @@ public final class Ui extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(input_weight)
-                    .addComponent(input_date))
+                    .addComponent(input_date, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(30, 30, 30)
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(Add, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -646,13 +653,14 @@ public final class Ui extends javax.swing.JFrame {
                         .addComponent(Update))
                     .addGroup(jPanel11Layout.createSequentialGroup()
                         .addGap(26, 26, 26)
-                        .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel16)
-                            .addComponent(jLabel17)
-                            .addComponent(input_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel19)
-                            .addComponent(input_date, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(input_product_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel16)
+                                .addComponent(jLabel17)
+                                .addComponent(input_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel19)
+                                .addComponent(input_product_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(input_date, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel20, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -813,18 +821,6 @@ public final class Ui extends javax.swing.JFrame {
 
         jPanel8.setBackground(new java.awt.Color(31, 64, 104));
 
-        InsertStartDate.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                InsertStartDateKeyPressed(evt);
-            }
-        });
-
-        InsertStopDate.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                InsertStopDateKeyPressed(evt);
-            }
-        });
-
         RefreshData.setText("Refresh");
         RefreshData.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -838,6 +834,10 @@ public final class Ui extends javax.swing.JFrame {
         jLabel12.setForeground(new java.awt.Color(255, 255, 255));
         jLabel12.setText("End Date");
 
+        InsertStopDate.setDateFormatString("yyyy-MM-dd");
+
+        InsertStartDate.setDateFormatString("yyyy-MM-dd");
+
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
         jPanel8Layout.setHorizontalGroup(
@@ -845,13 +845,14 @@ public final class Ui extends javax.swing.JFrame {
             .addGroup(jPanel8Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(InsertStartDate, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
+                    .addComponent(jLabel10)
+                    .addComponent(InsertStartDate, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel8Layout.createSequentialGroup()
-                        .addComponent(InsertStopDate, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(47, 47, 47)
+                        .addGap(10, 10, 10)
+                        .addComponent(InsertStopDate, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(34, 34, 34)
                         .addComponent(RefreshData, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel12))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -865,9 +866,9 @@ public final class Ui extends javax.swing.JFrame {
                     .addComponent(jLabel12))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(RefreshData, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(InsertStartDate)
-                    .addComponent(InsertStopDate, javax.swing.GroupLayout.Alignment.LEADING))
+                    .addComponent(RefreshData, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
+                    .addComponent(InsertStopDate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(InsertStartDate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(29, 29, 29))
         );
 
@@ -894,20 +895,6 @@ public final class Ui extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 888, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(Purchase_Weights, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(GetTotalWeight, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(26, 26, 26))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -920,7 +907,21 @@ public final class Ui extends javax.swing.JFrame {
                                 .addGap(410, 410, 410))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jPanel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                                .addComponent(jPanel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jPanel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(Purchase_Weights, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(GetTotalWeight, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(26, 26, 26)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -980,24 +981,21 @@ public final class Ui extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_AboutActionPerformed
 
-    private void CalendarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CalendarActionPerformed
-        // TODO add your handling code here:
-        CalendarProgram.main();   
-        
-    }//GEN-LAST:event_CalendarActionPerformed
-
     private void AddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddActionPerformed
         
         try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date1 = (Date) input_date.getDate();
+            String input_date =sdf.format(date1) ;
             String sql = "INSERT INTO Transactions VALUES(?,?,?,?,?,?)";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setInt(1,Integer.parseInt(input_product_id.getText()));
+            pst.setString(1,input_product_id.getItemAt(input_product_id.getSelectedIndex()));
             pst.setString(2, input_type.getItemAt(input_type.getSelectedIndex()));
             pst.setDouble(3,Double.parseDouble(input_quantity.getText()) );
             pst.setDouble(4,Double.parseDouble(input_weight.getText()) );
-            pst.setString(5,input_date.getText() );
-            pst.setInt(6, Integer.parseInt(input_crt.getItemAt(input_crt.getSelectedIndex())));
+            pst.setString(5,input_date);
+            pst.setString(6, input_crt.getItemAt(input_crt.getSelectedIndex()));
             pst.executeUpdate();
             
             
@@ -1012,15 +1010,18 @@ public final class Ui extends javax.swing.JFrame {
 
     private void UpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateActionPerformed
         try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date1 = (Date) input_date.getDate();
+            String input_date =sdf.format(date1) ;
             String sql = "UPDATE Transactions SET Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE Product_ID=?";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setString(6, input_product_id.getText());
+            pst.setString(6, input_product_id.getItemAt(input_product_id.getSelectedIndex()));
             pst.setString(1, input_type.getItemAt(input_type.getSelectedIndex()));
             pst.setDouble(2,Double.parseDouble(input_quantity.getText()) );
             pst.setDouble(3,Double.parseDouble(input_weight.getText()) );
-            pst.setString(4,input_date.getText() );
-            pst.setInt(5, Integer.parseInt(input_crt.getItemAt(input_crt.getSelectedIndex())));
+            pst.setString(4,input_date);
+            pst.setString(5, input_crt.getItemAt(input_crt.getSelectedIndex()));
             pst.executeUpdate();
             
             
@@ -1033,17 +1034,6 @@ public final class Ui extends javax.swing.JFrame {
 // TODO add your handling code here:
     }//GEN-LAST:event_UpdateActionPerformed
 
-    private void input_product_idKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_product_idKeyPressed
-           char c = evt.getKeyChar();
-      if (!((c >= '0') && (c <= '9') ||
-         (c == KeyEvent.VK_BACK_SPACE) ||
-         (c == KeyEvent.VK_DELETE)))        
-      {
-        JOptionPane.showMessageDialog(null, "Please Enter valid Numbers");
-        evt.consume();
-      }// TODO add your handling code here:
-    }//GEN-LAST:event_input_product_idKeyPressed
-
     private void input_quantityKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_quantityKeyPressed
      char c = evt.getKeyChar();
       if (!((c >= '0') && (c <= '9') ||
@@ -1054,17 +1044,6 @@ public final class Ui extends javax.swing.JFrame {
         evt.consume();
       }        // TODO add your handling code here:
     }//GEN-LAST:event_input_quantityKeyPressed
-
-    private void input_dateKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_dateKeyPressed
-     char c = evt.getKeyChar();
-      if (!((c >= '0') && (c <= '9') ||
-         (c == KeyEvent.VK_BACK_SPACE) ||
-         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
-      {
-        JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
-        evt.consume();
-      }        // TODO add your handling code here:
-    }//GEN-LAST:event_input_dateKeyPressed
 
     private void input_weightKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_input_weightKeyPressed
          char c = evt.getKeyChar();
@@ -1079,7 +1058,12 @@ public final class Ui extends javax.swing.JFrame {
 
     private void RefreshDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefreshDataActionPerformed
        try {
-           if(InsertStartDate.getText().isEmpty() && InsertStopDate.getText().isEmpty() ){
+           SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+           Date date1 = (Date) InsertStopDate.getDate();
+           String InsertStopDate =sdf.format(date1) ;
+           Date date = (Date) InsertStartDate.getDate();
+           String InsertStartDate = sdf.format(date);
+           if(InsertStartDate.isEmpty() && InsertStopDate.isEmpty()){
                updateTable();
                JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
            }
@@ -1087,9 +1071,9 @@ public final class Ui extends javax.swing.JFrame {
             String sql = "SELECT * FROM Transactions WHERE Date BETWEEN ? and ?";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setString(1,InsertStartDate.getText());
-            pst.setString(2,InsertStopDate.getText());
-            
+            pst.setString(1,InsertStartDate);
+            pst.setString(2,InsertStopDate);
+            System.out.println("\n"+InsertStartDate+"\n"+InsertStopDate);
             rs = pst.executeQuery();
             AllTransactionsTable.setModel(DbUtils.resultSetToTableModel(rs));
            }
@@ -1101,28 +1085,6 @@ public final class Ui extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_RefreshDataActionPerformed
-
-    private void InsertStartDateKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_InsertStartDateKeyPressed
-       char c = evt.getKeyChar();
-      if (!((c >= '0') && (c <= '9') ||
-         (c == KeyEvent.VK_BACK_SPACE) ||
-         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
-      {
-        JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
-        evt.consume();
-      }    // TODO add your handling code here:
-    }//GEN-LAST:event_InsertStartDateKeyPressed
-
-    private void InsertStopDateKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_InsertStopDateKeyPressed
-        char c = evt.getKeyChar();
-      if (!((c >= '0') && (c <= '9') ||
-         (c == KeyEvent.VK_BACK_SPACE) ||
-         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
-      {
-        JOptionPane.showMessageDialog(null, "Please Enter Valid Date YYYY-MM-DD");
-        evt.consume();
-      }           // TODO add your handling code here:
-    }//GEN-LAST:event_InsertStopDateKeyPressed
 
     private void ViewAllTransactionsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_ViewAllTransactionsItemStateChanged
        
@@ -1304,11 +1266,19 @@ public final class Ui extends javax.swing.JFrame {
     private void AllTransactionsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AllTransactionsTableMouseClicked
         DefaultTableModel model = (DefaultTableModel) AllTransactionsTable.getModel();
         int selectedRowIndex = AllTransactionsTable.getSelectedRow();
-        input_product_id.setText(model.getValueAt(selectedRowIndex, 0).toString());
+        input_product_id.setSelectedItem(model.getValueAt(selectedRowIndex, 0).toString());
         input_type.setSelectedItem(model.getValueAt(selectedRowIndex, 1).toString());
         input_quantity.setText(model.getValueAt(selectedRowIndex, 2).toString());
         input_weight.setText(model.getValueAt(selectedRowIndex, 3).toString());
-        input_date.setText(model.getValueAt(selectedRowIndex, 4).toString());
+//        input_date.setText(model.getValueAt(selectedRowIndex, 4).toString());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = null;
+        try {
+            date = sdf. parse(model.getValueAt(selectedRowIndex, 4).toString());
+        } catch (ParseException ex) {
+            Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        input_date.setDate(date);
         input_crt.setSelectedItem(model.getValueAt(selectedRowIndex, 5).toString());
         
 // TODO add your handling code here:
@@ -1456,13 +1426,12 @@ public final class Ui extends javax.swing.JFrame {
     private javax.swing.JTable AllStockAvailableTable;
     private javax.swing.JTable AllTransactionsTable;
     private javax.swing.JLabel Artisan_count;
-    private javax.swing.JButton Calendar;
     private javax.swing.JButton ExportToExcel;
     private javax.swing.JButton ExportToExcelStock;
     private javax.swing.ButtonGroup FilterButtons;
     private javax.swing.JPanel GetTotalWeight;
-    private javax.swing.JTextField InsertStartDate;
-    private javax.swing.JTextField InsertStopDate;
+    private com.toedter.calendar.JDateChooser InsertStartDate;
+    private com.toedter.calendar.JDateChooser InsertStopDate;
     private javax.swing.JLabel Order_count;
     private javax.swing.JPanel Purchase_Weights;
     private javax.swing.JLabel Purchase_count;
@@ -1479,8 +1448,8 @@ public final class Ui extends javax.swing.JFrame {
     private javax.swing.JRadioButton ViewAllTransactions;
     private javax.swing.JRadioButton ViewAlllPurchases;
     private javax.swing.JComboBox<String> input_crt;
-    private javax.swing.JTextField input_date;
-    private javax.swing.JTextField input_product_id;
+    private com.toedter.calendar.JDateChooser input_date;
+    private javax.swing.JComboBox<String> input_product_id;
     private javax.swing.JTextField input_quantity;
     private javax.swing.JComboBox<String> input_type;
     private javax.swing.JTextField input_weight;
@@ -1499,6 +1468,7 @@ public final class Ui extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
