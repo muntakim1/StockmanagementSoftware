@@ -5,6 +5,8 @@
  */
 package stockmanagement;
 
+import java.sql.Connection;
+
 /**
  *
  * @author munta
@@ -16,6 +18,7 @@ public class StockManagement {
      */
     public static void main(String[] args) {
        java.awt.EventQueue.invokeLater(() -> {
+          
            new Ui().setVisible(true);
         
        });

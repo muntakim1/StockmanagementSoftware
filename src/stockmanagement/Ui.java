@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -39,18 +40,21 @@ public final class Ui extends javax.swing.JFrame {
     /**
      * Creates new form Ui
      */
-    Connection conn=null;
-    PreparedStatement pst = null;
+    Connection conn = null;
+    PreparedStatement pst  = null;
     PreparedStatement pst1 = null;
     PreparedStatement pst2 = null;
     PreparedStatement pst3 = null;
     PreparedStatement pst4 = null;
-    ResultSet rs = null;
+    ResultSet rs  = null;
     ResultSet rs1 = null;
     ResultSet rs2 = null;
     ResultSet rs3 = null;
-    ResultSet rs4 = null;    
-    DefaultTableModel model = new DefaultTableModel();
+    ResultSet rs4 = null;
+    ArrayList<AvailableStock> Stock = new ArrayList<>();
+    String Selected_ID = "";
+    String LastProductID="";
+    int quantity=0;
     public Ui() {
         
         initComponents();
@@ -59,6 +63,8 @@ public final class Ui extends javax.swing.JFrame {
         StatusUpdater();
         StockTableUpdate();
         String sql = "SELECT Product_ID FROM ProductMaster";
+        
+        
         try {
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
@@ -66,31 +72,30 @@ public final class Ui extends javax.swing.JFrame {
             while(rs.next()){
             input_product_id.addItem(rs.getString(1));
         }
-            
             conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }  
     }
     void StatusUpdater(){
-        String sql = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Purchase\";";
+        String sql  = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Purchase\";";
         String sql2 = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Sales\";";
         String sql3 = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Order\";";
         String sql4 = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Artisan\";";
         String sql5 = "SELECT SUM(Weight) as total FROM Transactions;";
         try {
-            conn=ConnectionManager.Connect();
-            pst = conn.prepareStatement(sql);
+            conn = ConnectionManager.Connect();
+            pst  = conn.prepareStatement(sql);
             pst1 = conn.prepareStatement(sql2);
             pst2 = conn.prepareStatement(sql3);
             pst3 = conn.prepareStatement(sql4);
             pst4 = conn.prepareStatement(sql5);
             
-            rs = pst.executeQuery();
-            rs1=pst1.executeQuery();
-            rs2=pst2.executeQuery();
-            rs3=pst3.executeQuery();
-            rs4=pst4.executeQuery();
+            rs  = pst.executeQuery();
+            rs1 = pst1.executeQuery();
+            rs2 = pst2.executeQuery();
+            rs3 = pst3.executeQuery();
+            rs4 = pst4.executeQuery();
             Purchase_count.setText(rs.getString("total"));
             Sale_count.setText(rs1.getString("total"));
             Order_count.setText(rs2.getString("total"));
@@ -102,38 +107,43 @@ public final class Ui extends javax.swing.JFrame {
         }
     }
     void updateTable(){
-        String sql = "SELECT * FROM Transactions";
+        String sql = "SELECT _id as ID,Product_ID,Type,Quantity,Weight,DATE,CRT FROM Transactions";
         try {
             conn=ConnectionManager.Connect();
 
             pst = conn.prepareStatement(sql);
-            rs = pst.executeQuery();
-            System.out.print(rs);
+            rs  = pst.executeQuery();            
+            
             AllTransactionsTable.setModel(DbUtils.resultSetToTableModel(rs));
             conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }  
     }
-    void StockTableUpdate(String Values){
-        String sql ="SELECT Product_ID, \n" +
-        "CASE Type \n" +
-        "WHEN \"Sales\" \n" +
-        "THEN Available_stock-Quantity \n" +
-        "ELSE \n" +
-        "Available_stock\n" +
-        "END Available_stock FROM (SELECT Product_ID,Type,Quantity, sum(Quantity) as Available_stock FROM Transactions GROUP By Product_ID) GROUP By Product_ID;"; 
+    void StockTableUpdate(){
+        conn = ConnectionManager.Connect();
+        String sql = "select Product_ID,Quantity as AvailableStock "
+                + "from AvailableStock "
+                + "where _id in\n" +
+                "(select max(_id) from AvailableStock "
+                + "group by Product_ID)";
         try {
-            conn=ConnectionManager.Connect();
-
+            ResultSet rsset=null,rsset1;
             pst = conn.prepareStatement(sql);
-            rs = pst.executeQuery();
-            System.out.print(rs);
-            AllStockAvailableTable.setModel(DbUtils.resultSetToTableModel(rs));
+            rsset  = pst.executeQuery();
+            AllStockAvailableTable.setModel(DbUtils.resultSetToTableModel(rsset));
+            rsset1= pst.executeQuery();
+            while(rsset1.next()){
+                System.out.println(rsset1.getString(1));
+                Stock.add(new AvailableStock(rsset1.getString(1),Integer.parseInt(rsset1.getString(2))));
+            }
             conn.close();
+            System.out.println(Stock);
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }
+       
+       
     }
    
     /**
@@ -494,12 +504,6 @@ public final class Ui extends javax.swing.JFrame {
         });
         jScrollPane2.setViewportView(AllStockAvailableTable);
 
-        SearchID.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                SearchIDKeyPressed(evt);
-            }
-        });
-
         RefreshBtn.setText("Refresh");
         RefreshBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -599,6 +603,7 @@ public final class Ui extends javax.swing.JFrame {
 
         jLabel21.setText("Weight");
 
+        input_weight.setText("0");
         input_weight.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 input_weightKeyPressed(evt);
@@ -983,13 +988,35 @@ public final class Ui extends javax.swing.JFrame {
 
     private void AddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddActionPerformed
         
+        for(AvailableStock stock:Stock){
+            if (input_type.getItemAt(input_type.getSelectedIndex()).equals("Sales") &&
+                stock.ProductID.equals(input_product_id.getItemAt(input_product_id.getSelectedIndex())) ){
+            System.out.println("\n\n"+stock.ProductID);
+             quantity = stock.Quantity - Integer.parseInt(input_quantity.getText());
+           
+        }
+        else if(stock.ProductID.equals(input_product_id.getItemAt(input_product_id.getSelectedIndex())) ){
+            System.out.println("\n\n"+stock.ProductID);
+            quantity=stock.Quantity + Integer.parseInt(input_quantity.getText());
+            
+        }
+                
+        }
+        
         try {
+            
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date date1 = (Date) input_date.getDate();
             String input_date =sdf.format(date1) ;
-            String sql = "INSERT INTO Transactions VALUES(?,?,?,?,?,?)";
+            String sql = "INSERT INTO Transactions VALUES(null,?,?,?,?,?,?)";
+            String sql1="INSERT INTO AvailableStock VALUES(null,?,?)";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
+            pst1 = conn.prepareStatement(sql1);
+            pst1.setString(1,input_product_id.getItemAt(input_product_id.getSelectedIndex()));
+            pst1.setString(2,Integer.toString(quantity));
+            pst1.executeUpdate();
+            
             pst.setString(1,input_product_id.getItemAt(input_product_id.getSelectedIndex()));
             pst.setString(2, input_type.getItemAt(input_type.getSelectedIndex()));
             pst.setDouble(3,Double.parseDouble(input_quantity.getText()) );
@@ -997,32 +1024,64 @@ public final class Ui extends javax.swing.JFrame {
             pst.setString(5,input_date);
             pst.setString(6, input_crt.getItemAt(input_crt.getSelectedIndex()));
             pst.executeUpdate();
-            
-            
+            conn.close();
+           
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
             JOptionPane.showMessageDialog(null, "Please Enter Valid Product ID");
         }
+        
+        
         updateTable(); 
         StatusUpdater();
         StockTableUpdate();
+        LastProductID=input_product_id.getItemAt(input_product_id.getSelectedIndex());
     }//GEN-LAST:event_AddActionPerformed
 
     private void UpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateActionPerformed
+         for(AvailableStock stock:Stock){
+            if (input_type.getItemAt(input_type.getSelectedIndex()).equals("Sales") &&
+                stock.ProductID.equals(input_product_id.getItemAt(input_product_id.getSelectedIndex())) ){
+            System.out.println("\n\n"+stock.ProductID);
+             quantity = stock.Quantity - Integer.parseInt(input_quantity.getText());
+           
+        }
+        else if(stock.ProductID.equals(input_product_id.getItemAt(input_product_id.getSelectedIndex())) ){
+            System.out.println("\n\n"+stock.ProductID);
+            quantity=stock.Quantity + Integer.parseInt(input_quantity.getText());
+            
+        }
+                
+        }
         try {
+            if (!Selected_ID.isEmpty()){
+                System.out.println("\n"+Selected_ID);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date date1 = (Date) input_date.getDate();
-            String input_date =sdf.format(date1) ;
-            String sql = "UPDATE Transactions SET Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE Product_ID=?";
+            String input_date1 =sdf.format(date1) ;
+            String sql = "UPDATE Transactions SET Product_ID=?, Type=?,Quantity=?,Weight=?,DATE=?,CRT=? WHERE _id=?";
+            String sql1="INSERT INTO AvailableStock VALUES(null,?,?)";
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setString(6, input_product_id.getItemAt(input_product_id.getSelectedIndex()));
-            pst.setString(1, input_type.getItemAt(input_type.getSelectedIndex()));
-            pst.setDouble(2,Double.parseDouble(input_quantity.getText()) );
-            pst.setDouble(3,Double.parseDouble(input_weight.getText()) );
-            pst.setString(4,input_date);
-            pst.setString(5, input_crt.getItemAt(input_crt.getSelectedIndex()));
+            pst1 = conn.prepareStatement(sql1);
+            pst1.setString(1,input_product_id.getItemAt(input_product_id.getSelectedIndex()));
+            pst1.setString(2,Integer.toString(quantity));
+            pst1.executeUpdate();
+            
+            pst = conn.prepareStatement(sql);
+            pst.setString(7, Selected_ID);
+            pst.setString(1, input_product_id.getItemAt(input_product_id.getSelectedIndex()));
+            pst.setString(2, input_type.getItemAt(input_type.getSelectedIndex()));
+            pst.setDouble(3,Double.parseDouble(input_quantity.getText()) );
+            pst.setDouble(4,Double.parseDouble(input_weight.getText()) );
+            pst.setString(5,input_date1);
+            pst.setString(6, input_crt.getItemAt(input_crt.getSelectedIndex()));
             pst.executeUpdate();
+            }
+            else{
+                JOptionPane.showMessageDialog(null, "Please Select a row!");
+            }
+            
             
             
         } catch (SQLException ex) {
@@ -1222,8 +1281,8 @@ public final class Ui extends javax.swing.JFrame {
                 XSSFRow row = excelSheet.createRow(0);
                  for (int c = 0; c < AllTransactionsTable.getColumnCount(); c++) {
                        XSSFCell cell =  row.createCell(c);
-                        cell.setCellValue(AllTransactionsTable.getColumnName(c).toString());
-                       System.out.println("\n"+AllTransactionsTable.getColumnName(c).toString());
+                        cell.setCellValue(AllTransactionsTable.getColumnName(c));
+                       System.out.println("\n"+AllTransactionsTable.getColumnName(c));
                        }
                 for (int i = 0; i < AllTransactionsTable.getRowCount(); i++) {
                     XSSFRow excelRow = excelSheet.createRow(i+1);
@@ -1264,22 +1323,23 @@ public final class Ui extends javax.swing.JFrame {
     }//GEN-LAST:event_ExportToExcelActionPerformed
 
     private void AllTransactionsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AllTransactionsTableMouseClicked
-        DefaultTableModel model = (DefaultTableModel) AllTransactionsTable.getModel();
+        DefaultTableModel model1 = (DefaultTableModel) AllTransactionsTable.getModel();
         int selectedRowIndex = AllTransactionsTable.getSelectedRow();
-        input_product_id.setSelectedItem(model.getValueAt(selectedRowIndex, 0).toString());
-        input_type.setSelectedItem(model.getValueAt(selectedRowIndex, 1).toString());
-        input_quantity.setText(model.getValueAt(selectedRowIndex, 2).toString());
-        input_weight.setText(model.getValueAt(selectedRowIndex, 3).toString());
+        Selected_ID = model1.getValueAt(selectedRowIndex,0).toString();
+        input_product_id.setSelectedItem(model1.getValueAt(selectedRowIndex, 1).toString());
+        input_type.setSelectedItem(model1.getValueAt(selectedRowIndex, 2).toString());
+        input_quantity.setText(model1.getValueAt(selectedRowIndex, 3).toString());
+        input_weight.setText(model1.getValueAt(selectedRowIndex, 4).toString());
 //        input_date.setText(model.getValueAt(selectedRowIndex, 4).toString());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Date date = null;
         try {
-            date = sdf. parse(model.getValueAt(selectedRowIndex, 4).toString());
+            date = sdf. parse(model1.getValueAt(selectedRowIndex, 5).toString());
         } catch (ParseException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }
         input_date.setDate(date);
-        input_crt.setSelectedItem(model.getValueAt(selectedRowIndex, 5).toString());
+        input_crt.setSelectedItem(model1.getValueAt(selectedRowIndex, 6).toString());
         
 // TODO add your handling code here:
     }//GEN-LAST:event_AllTransactionsTableMouseClicked
@@ -1309,7 +1369,7 @@ public final class Ui extends javax.swing.JFrame {
                 XSSFRow row = excelSheet.createRow(0);
                  for (int c = 0; c < AllStockAvailableTable.getColumnCount(); c++) {
                        XSSFCell cell =  row.createCell(c);
-                        cell.setCellValue(AllStockAvailableTable.getColumnName(c).toString());
+                        cell.setCellValue(AllStockAvailableTable.getColumnName(c));
                        
                        }
                 for (int i = 0; i < AllStockAvailableTable.getRowCount(); i++) {
@@ -1351,12 +1411,17 @@ public final class Ui extends javax.swing.JFrame {
     }//GEN-LAST:event_ExportToExcelStockActionPerformed
 
     private void RefreshBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefreshBtnActionPerformed
-       String sql = "SELECT Product_ID,Quantity as Available_Stock FROM Transactions Where Product_ID=?;";
+        StockTableUpdate();
+        String sql = "select Product_ID,Quantity as AvailableStock "
+                + "from AvailableStock "
+                + "where Product_ID=? AND _id in\n" +
+                "(select max(_id) from AvailableStock "
+                + "group by Product_ID)";
         try {
             if(!SearchID.getText().isEmpty()){
             conn=ConnectionManager.Connect();
             pst = conn.prepareStatement(sql);
-            pst.setInt(1,Integer.parseInt(SearchID.getText()));
+            pst.setString(1,SearchID.getText());
             rs = pst.executeQuery();
             System.out.print(rs);
             AllStockAvailableTable.setModel(DbUtils.resultSetToTableModel(rs));
@@ -1364,7 +1429,7 @@ public final class Ui extends javax.swing.JFrame {
             }
             else{
                 JOptionPane.showMessageDialog(null, "Please Enter a valid ID to search");
-                StockTableUpdate();
+//                StockTableUpdate();
             }
             
         } catch (SQLException ex) {
@@ -1373,17 +1438,6 @@ public final class Ui extends javax.swing.JFrame {
              
         } // TODO add your handling code here:
     }//GEN-LAST:event_RefreshBtnActionPerformed
-
-    private void SearchIDKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_SearchIDKeyPressed
-    char c = evt.getKeyChar();
-      if (!((c >= '0') && (c <= '9') ||
-         (c == KeyEvent.VK_BACK_SPACE) ||
-         (c == KeyEvent.VK_DELETE) || (c == KeyEvent.VK_MINUS)))        
-      {
-        JOptionPane.showMessageDialog(null, "Please Enter Valid ID");
-        evt.consume();
-      }           // TODO add your handling code here:
-    }//GEN-LAST:event_SearchIDKeyPressed
 
     /**
      * @param args the command line arguments
@@ -1401,22 +1455,16 @@ public final class Ui extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Ui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        
+        //</editor-fold>
        
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Ui().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new Ui().setVisible(true);
         });
     }
 

@@ -18,7 +18,7 @@ public class ConnectionManager {
     public static Connection Connect(){
         
         Connection conn=null;
-        createNewTable();
+      
         try {
             Class.forName("org.sqlite.JDBC");
             conn = DriverManager.getConnection("jdbc:sqlite:database.db");

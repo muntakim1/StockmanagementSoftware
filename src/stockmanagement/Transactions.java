@@ -25,14 +25,32 @@ import net.proteanit.sql.DbUtils;
  */
 public final class Transactions extends javax.swing.JFrame {
     Connection conn=null;
-    PreparedStatement pst = null;
+    PreparedStatement pst = null,pst1=null;
     ResultSet rs = null;
     /**
      * Creates new form PurchasePage
      */
     public Transactions() {
-        initComponents();
-        updateTable();
+        
+            initComponents();
+            updateTable();
+        try {
+            String sql="Select Product_ID,QUANTITY FROM ProductMaster ";
+            String sql1="INSERT INTO AvailableStock VALUES(null,?,?) ";
+            conn = ConnectionManager.Connect();
+            pst=conn.prepareStatement(sql);
+            pst1=conn.prepareStatement(sql1);
+            rs = pst.executeQuery();
+            while(rs.next()){
+                pst1.setString(1, rs.getString(1));
+                pst1.setString(2, rs.getString(2));
+                pst1.executeUpdate();
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
     void updateTable(){
             String sql = "SELECT * FROM ProductMaster";
@@ -134,6 +152,7 @@ public final class Transactions extends javax.swing.JFrame {
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Quantity");
 
+        input_quantity.setText("0");
         input_quantity.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 input_quantityKeyPressed(evt);
@@ -175,6 +194,7 @@ public final class Transactions extends javax.swing.JFrame {
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Weight");
 
+        input_weight.setText("0");
         input_weight.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 input_weightKeyPressed(evt);

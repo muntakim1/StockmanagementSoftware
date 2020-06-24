@@ -5,9 +5,11 @@
         <group>
             <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/ConnectionManager.java</file>
             <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/Ui.java</file>
+            <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/ProductModel.java</file>
+            <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/AvailableStock.java</file>
             <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/Transactions.java</file>
             <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/AboutPage.java</file>
-            <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/CalendarProgram.java</file>
+            <file>file:/C:/Users/munta/OneDrive/Documents/NetBeansProjects/StockManagement/src/stockmanagement/StockManagement.java</file>
         </group>
     </open-files>
 </project-private>
