@@ -31,9 +31,13 @@ public final class Transactions extends javax.swing.JFrame {
      * Creates new form PurchasePage
      */
     public Transactions() {
-        
+            
             initComponents();
             updateTable();
+            StatusUpdater();
+        
+    }
+    void StatusUpdater(){
         try {
             String sql="Select Product_ID,QUANTITY FROM ProductMaster ";
             String sql1="INSERT INTO AvailableStock VALUES(null,?,?) ";
@@ -50,7 +54,6 @@ public final class Transactions extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(Transactions.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
     }
     void updateTable(){
             String sql = "SELECT * FROM ProductMaster";
@@ -340,6 +343,8 @@ public final class Transactions extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Please Enter Valid Product ID");
         }
         updateTable(); 
+        StatusUpdater();
+      
     }//GEN-LAST:event_AddDataActionPerformed
 
     private void UpdateDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateDataActionPerformed
@@ -362,7 +367,9 @@ public final class Transactions extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
         }
-        updateTable();// TODO add your handling code here:
+        updateTable();
+        StatusUpdater();
+       // TODO add your handling code here:
     }//GEN-LAST:event_UpdateDataActionPerformed
 
     private void DeleteItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteItemActionPerformed

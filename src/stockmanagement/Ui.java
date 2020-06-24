@@ -62,6 +62,9 @@ public final class Ui extends javax.swing.JFrame {
         updateTable();
         StatusUpdater();
         StockTableUpdate();
+        StateProductUpdater();
+    }
+    void StateProductUpdater(){
         String sql = "SELECT Product_ID FROM ProductMaster";
         
         
@@ -75,7 +78,7 @@ public final class Ui extends javax.swing.JFrame {
             conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(Ui.class.getName()).log(Level.SEVERE, null, ex);
-        }  
+        }
     }
     void StatusUpdater(){
         String sql  = "SELECT SUM(Weight) as total FROM Transactions WHERE Type=\"Purchase\";";
@@ -1035,6 +1038,7 @@ public final class Ui extends javax.swing.JFrame {
         updateTable(); 
         StatusUpdater();
         StockTableUpdate();
+        StateProductUpdater();
         LastProductID=input_product_id.getItemAt(input_product_id.getSelectedIndex());
     }//GEN-LAST:event_AddActionPerformed
 
@@ -1090,6 +1094,7 @@ public final class Ui extends javax.swing.JFrame {
         updateTable();
         StatusUpdater();
         StockTableUpdate();
+        StateProductUpdater();
 // TODO add your handling code here:
     }//GEN-LAST:event_UpdateActionPerformed
 
