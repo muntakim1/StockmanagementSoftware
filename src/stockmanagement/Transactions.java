@@ -6,6 +6,8 @@
 package stockmanagement;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,6 +18,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 import net.proteanit.sql.DbUtils;
 
@@ -35,7 +38,7 @@ public final class Transactions extends javax.swing.JFrame {
             initComponents();
             updateTable();
             StatusUpdater();
-        
+                    
     }
     void StatusUpdater(){
         try {
@@ -208,7 +211,7 @@ public final class Transactions extends javax.swing.JFrame {
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Type");
 
-        input_type.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Purchase", "Sales", "Order", "Artisan" }));
+        input_type.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Purchase", "Sales", "Order", "Artisan", "Stock" }));
 
         input_date.setDateFormatString("yyyy-MM-dd");
 
@@ -463,10 +466,15 @@ public final class Transactions extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Transactions().setVisible(true);
+             Transactions transaction=new Transactions();
+             transaction.setVisible(true);
+             
+             
             }
         });
+        
     }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton AddData;
